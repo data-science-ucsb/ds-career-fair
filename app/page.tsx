@@ -12,8 +12,18 @@ import LoginButton from "@/components/LoginButton";
 import FormInput from "@/components/FormInput";
 import { useEffect } from "react";
 
-function useDoc(path) {
-  const [data, loading] = useDocumentData(path && doc(db, path));
+import { CldUploadButton } from "next-cloudinary";
+
+function useDoc(pathOrRef) {
+  let ref;
+  if (!pathOrRef) {
+    ref = null;
+  } else if (typeof pathOrRef === "string") {
+    ref = doc(db, pathOrRef);
+  } else {
+    ref = pathOrRef;
+  }
+  const [data, loading] = useDocumentData(ref);
   return [data || {}, loading];
 }
 
@@ -22,13 +32,9 @@ export default function Home() {
 
   const [{ company }, loadingRep] = useDoc(user && `reps/${user.uid}`);
 
-  console.log("company", company);
+  const companyRef = company && doc(db, `companies/${company}`);
 
-  const [companyData, loadingCompany] = useDoc(
-    company && `companies/${company}`
-  );
-
-  console.log("companyData", companyData);
+  const [companyData, loadingCompany] = useDoc(companyRef);
 
   const loading = loadingUser || loadingRep || loadingCompany;
 
@@ -52,9 +58,10 @@ export default function Home() {
       <main>
         <h1>Welcome, {user.displayName}</h1>
         <h2>Let&apos;s find your next job</h2>
+        <CldUploadButton uploadPreset="companies_unsigned" />
         <form
           onSubmit={handleSubmit((data) => {
-            updateDoc(companyDoc, {
+            updateDoc(companyRef, {
               name: data.name,
               description: data.description,
               location: data.location,
