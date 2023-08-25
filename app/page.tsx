@@ -10,24 +10,25 @@ import { doc, updateDoc } from "firebase/firestore";
 
 import LoginButton from "@/components/LoginButton";
 import FormInput from "@/components/FormInput";
-import { useEffect, useMemo } from "react";
+import { useEffect } from "react";
+
+function useDoc(path) {
+  const [data, loading] = useDocumentData(path && doc(db, path));
+  return [data || {}, loading];
+}
 
 export default function Home() {
   const [user, loadingUser, error] = useAuthState(auth);
 
-  const repDoc = user && doc(db, `reps/${user.uid}`);
+  const [{ company }, loadingRep] = useDoc(user && `reps/${user.uid}`);
 
-  const [repData, loadingRep] = useDocumentData(repDoc);
+  console.log("company", company);
 
-  const { company } = repData || {};
+  const [companyData, loadingCompany] = useDoc(
+    company && `companies/${company}`
+  );
 
-  const companyDoc = company && doc(db, `companies/${company}`);
-
-  const [companyData, loadingCompany] = useDocumentData(companyDoc);
-
-  const defaultValues = companyData;
-
-  console.log(defaultValues);
+  console.log("companyData", companyData);
 
   const loading = loadingUser || loadingRep || loadingCompany;
 
@@ -35,9 +36,12 @@ export default function Home() {
     register,
     handleSubmit,
     formState: { errors },
-  } = useForm({
-    defaultValues: useMemo(() => defaultValues, [defaultValues]),
-  });
+    reset,
+  } = useForm();
+
+  useEffect(() => {
+    reset(companyData);
+  }, [loading]);
 
   if (loading) return <h1>Loading...</h1>;
 
