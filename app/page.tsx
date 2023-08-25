@@ -1,42 +1,29 @@
 "use client";
 
+import { useEffect } from "react";
+
 import { useForm } from "react-hook-form";
 
-import { useAuthState } from "react-firebase-hooks/auth";
-import { useDocumentData } from "react-firebase-hooks/firestore";
-import { auth, db } from "@/app/config";
 import { signOut } from "firebase/auth";
+import { useAuthState } from "react-firebase-hooks/auth";
+import { auth, db } from "@/app/config";
+
 import { doc, updateDoc } from "firebase/firestore";
+import { useDoc } from "@/app/firebaseUtils";
 
 import LoginButton from "@/components/LoginButton";
 import FormInput from "@/components/FormInput";
-import { useEffect } from "react";
 
 import { CldUploadButton } from "next-cloudinary";
 
-function useDoc(pathOrRef) {
-  let ref;
-  if (!pathOrRef) {
-    ref = null;
-  } else if (typeof pathOrRef === "string") {
-    ref = doc(db, pathOrRef);
-  } else {
-    ref = pathOrRef;
-  }
-  const [data, loading] = useDocumentData(ref);
-  return [data || {}, loading];
-}
-
 export default function Home() {
-  const [user, loadingUser, error] = useAuthState(auth);
+  const [user] = useAuthState(auth);
 
-  const [{ company }, loadingRep] = useDoc(user && `reps/${user.uid}`);
+  const [{ company }] = useDoc(user && `reps/${user.uid}`);
 
   const companyRef = company && doc(db, `companies/${company}`);
 
   const [companyData, loadingCompany] = useDoc(companyRef);
-
-  const loading = loadingUser || loadingRep || loadingCompany;
 
   const {
     register,
@@ -47,11 +34,9 @@ export default function Home() {
 
   useEffect(() => {
     reset(companyData);
-  }, [loading]);
+  }, [loadingCompany]);
 
-  if (loading) return <h1>Loading...</h1>;
-
-  if (error) return <h1>Error: {error.message}</h1>;
+  if (loadingCompany) return <h1>Loading...</h1>;
 
   if (user) {
     return (
