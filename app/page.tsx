@@ -17,13 +17,15 @@ import FormInput from "@/components/FormInput";
 import { CldUploadButton } from "next-cloudinary";
 
 export default function Home() {
-  const [user] = useAuthState(auth);
+  const [user, loadingUser] = useAuthState(auth);
 
   const [{ company }] = useDoc(user && `reps/${user.uid}`);
 
   const companyRef = company && doc(db, `companies/${company}`);
 
   const [companyData, loadingCompany] = useDoc(companyRef);
+
+  const loading = loadingUser || (user && loadingCompany);
 
   const {
     register,
@@ -36,7 +38,7 @@ export default function Home() {
     reset(companyData);
   }, [loadingCompany]);
 
-  if (loadingCompany) return <h1>Loading...</h1>;
+  if (loading) return <h1>Loading...</h1>;
 
   if (user) {
     return (
