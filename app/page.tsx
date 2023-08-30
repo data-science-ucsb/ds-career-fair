@@ -2,6 +2,7 @@
 
 import { useAuthState } from "react-firebase-hooks/auth";
 import LoginButton from "@/components/LoginButton";
+import sendMail from "@/components/SendMail";
 
 import { auth } from "@/app/config";
 import { signOut } from "firebase/auth";
@@ -18,6 +19,7 @@ export default function Home() {
       <main>
         <h1>Welcome, {user.displayName}</h1>
         <h2>Let&apos;s find your next job</h2>
+        <button onClick={() => sendMail("jeffreycao@ucsb.edu", "test", "<h1>asfg<h1>")}>SendMail</button>
         <button onClick={() => signOut(auth)}>Sign Out</button>
       </main>
     );
