@@ -5,7 +5,7 @@ import { app, db, auth } from "@/app/config"
 
 import { useAuthState } from "react-firebase-hooks/auth";
 
-import { collection, doc, addDoc, getDocs, Timestamp } from 'firebase/firestore';
+import { collection, doc, addDoc, deleteDoc, Timestamp } from 'firebase/firestore';
 import { useCollection, useDocumentData } from 'react-firebase-hooks/firestore';
 
 import { useDoc, getFromCollection } from '@/app/firebaseUtils'
@@ -22,6 +22,8 @@ export default function SeatList() {
   const repsRef = company && collection(db, `reps`)
   const [ repsData, loadingReps ] = getFromCollection(repsRef, ['company', '==', company])
 
+  // console.log(repsData.docs[0].id)
+
   const loading = loadingUser || (user && loadingCompany) || loadingReps
 
   const {
@@ -34,7 +36,7 @@ export default function SeatList() {
     const date = new Date();
     date.setDate(date.getDate() + 7);
 
-    const newInviteRef = await addDoc(collection(db, 'companies', company, 'invites'), {
+    await addDoc(collection(db, 'companies', company, 'invites'), {
       firstName: data.firstName, // TODO: refactor into type
       lastName: data.lastName,
       email: data.email,
@@ -43,7 +45,12 @@ export default function SeatList() {
 
     alert(`New invite to ${data.email} sent successfully`)
   }
-  
+
+  const deleteRep = async (repId, repName) => {
+    await deleteDoc(doc(db, 'reps', repId))
+
+    alert(`Rep ${repName} deleted successfully`)
+  }
 
   if (loading) return <h1>Loading...</h1>
 
@@ -58,11 +65,11 @@ export default function SeatList() {
       <h2>Representatives:</h2>
       <ol>
         {
-          repsData && repsData.length > 0 && (
-            repsData.map((item, id) => {
+          repsData && repsData.docs.length > 0 && (
+            repsData.docs.map((item, id) => {
               return (
                 <li key={id}>
-                  <p>{item.name}</p> 
+                  {item.data().name}  | <span onClick={() => deleteRep(item.id, item.data().name)}>delete</span>
                 </li>
               )
             })
