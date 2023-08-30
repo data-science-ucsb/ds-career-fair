@@ -30,10 +30,6 @@ export default function SeatList() {
     formState: { errors },
   } = useForm();
 
-  const getOppositeStatus = (currStatus) => {
-    return currStatus == 'rep' ? 'admin' : 'rep'
-  }
-
   const addRep = async (data: Object) => {
     const date = new Date();
     date.setDate(date.getDate() + 7);
@@ -54,10 +50,10 @@ export default function SeatList() {
     alert(`Rep ${repName} deleted successfully`)
   }
 
-  const updateRep = async (repId, currStatus, repName) => {
+  const updateRep = async (repId, isRep, repName) => {
     const repRef = doc(db, 'reps', repId)
     await updateDoc(repRef, {
-      'status': getOppositeStatus(currStatus)
+      'isRep': !isRep
     })
 
     alert(`User ${repName} status updated successfully`)
@@ -81,8 +77,8 @@ export default function SeatList() {
             repsData.docs.map((item, id) => {
               return (
                 <li key={id}>
-                  {item.data().name} ({item.data().status})  |
-                  <button onClick={() => updateRep(item.id, item.data().status, item.data().name)}>change status to {getOppositeStatus(item.data().status)}</button> |
+                  {item.data().name} ({item.data().isRep ? 'rep' : 'admin'}) |
+                  <button onClick={() => updateRep(item.id, item.data().isRep, item.data().name)}>change isRep status to {item.data().isRep ? 'admin' : 'rep'}</button> |
                   <button onClick={() => deleteRep(item.id, item.data().name)}>delete</button>
                 </li>
               )
