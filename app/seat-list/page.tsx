@@ -5,7 +5,7 @@ import { app, db, auth } from "@/app/config"
 
 import { useAuthState } from "react-firebase-hooks/auth";
 
-import { collection, doc, addDoc, deleteDoc, Timestamp } from 'firebase/firestore';
+import { collection, doc, addDoc, deleteDoc, updateDoc, Timestamp } from 'firebase/firestore';
 import { useCollection, useDocumentData } from 'react-firebase-hooks/firestore';
 
 import { useDoc, getFromCollection } from '@/app/firebaseUtils'
@@ -22,8 +22,6 @@ export default function SeatList() {
   const repsRef = company && collection(db, `reps`)
   const [ repsData, loadingReps ] = getFromCollection(repsRef, ['company', '==', company])
 
-  // console.log(repsData.docs[0].id)
-
   const loading = loadingUser || (user && loadingCompany) || loadingReps
 
   const {
@@ -31,6 +29,10 @@ export default function SeatList() {
     handleSubmit,
     formState: { errors },
   } = useForm();
+
+  const getOppositeStatus = (currStatus) => {
+    return currStatus == 'rep' ? 'admin' : 'rep'
+  }
 
   const addRep = async (data: Object) => {
     const date = new Date();
@@ -52,6 +54,16 @@ export default function SeatList() {
     alert(`Rep ${repName} deleted successfully`)
   }
 
+  const updateRep = async (repId, currStatus, repName) => {
+    const repRef = doc(db, 'reps', repId)
+    await updateDoc(repRef, {
+      'status': getOppositeStatus(currStatus)
+    })
+
+    alert(`User ${repName} status updated successfully`)
+  }
+
+
   if (loading) return <h1>Loading...</h1>
 
   if (error) return <h1>Error: {error.message}</h1>;
@@ -69,7 +81,9 @@ export default function SeatList() {
             repsData.docs.map((item, id) => {
               return (
                 <li key={id}>
-                  {item.data().name}  | <span onClick={() => deleteRep(item.id, item.data().name)}>delete</span>
+                  {item.data().name} ({item.data().status})  |
+                  <button onClick={() => updateRep(item.id, item.data().status, item.data().name)}>change status to {getOppositeStatus(item.data().status)}</button> |
+                  <button onClick={() => deleteRep(item.id, item.data().name)}>delete</button>
                 </li>
               )
             })
