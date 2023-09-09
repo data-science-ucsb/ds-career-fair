@@ -19,13 +19,14 @@ import { CldUploadButton } from "next-cloudinary";
 export default function Home() {
   const [user, loadingUser] = useAuthState(auth);
 
-  const [{ company }] = useDoc(user && `reps/${user.uid}`);
+  const [{ company }, loadingRep] = useDoc(
+    user && `reps/${user.uid}`,
+    loadingUser
+  );
 
   const companyRef = company && doc(db, `companies/${company}`);
 
-  const [companyData, loadingCompany] = useDoc(companyRef);
-
-  const loading = loadingUser || (user && loadingCompany);
+  const [companyData, loadingCompany] = useDoc(companyRef, loadingRep);
 
   const {
     register,
@@ -38,7 +39,7 @@ export default function Home() {
     reset(companyData);
   }, [loadingCompany]);
 
-  if (loading) return <h1>Loading...</h1>;
+  if (loadingCompany) return <h1>Loading...</h1>;
 
   if (user) {
     return (
